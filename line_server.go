@@ -15,6 +15,9 @@ type LineResp struct {
 }
 
 func handleLineRequest(w http.ResponseWriter, r *http.Request, dataDir string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	q := r.URL.Query()
 	fname := q.Get("name")
 	start := q.Get("start")
