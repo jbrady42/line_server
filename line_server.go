@@ -3,15 +3,23 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"strconv"
+	"strings"
 )
 
 type LineResp struct {
 	Lines []map[string]interface{}
+}
+
+var compressors = map[string]string{
+	"xz": "xz",
+	"gz": "gzip",
 }
 
 func handleLineRequest(w http.ResponseWriter, r *http.Request, dataDir string) {
@@ -82,12 +90,70 @@ func lineObj(lines []string) LineResp {
 	return ret
 }
 
+type CmdReadCloser struct {
+	io.ReadCloser
+	*exec.Cmd
+}
+
+func (t *CmdReadCloser) Close() error {
+	// Close stream
+	t.ReadCloser.Close()
+	// Signal process cleanup
+	return t.Cmd.Wait()
+}
+
+func fileCompressed(fname string) bool {
+	for k := range compressors {
+		if strings.HasSuffix(fname, k) {
+			return true
+		}
+	}
+	return false
+}
+
+func openFileComp(fname string) (*CmdReadCloser, error) {
+	compType := ""
+	for k := range compressors {
+		if strings.HasSuffix(fname, k) {
+			compType = k
+		}
+	}
+
+	comp := compressors[compType]
+
+	proc := exec.Command(comp, "-d", "-c", fname)
+
+	outPipe, err := proc.StdoutPipe()
+	if err != nil {
+		log.Println("Error opening file", err)
+		return nil, err
+	}
+
+	proc.Start()
+
+	streamWrap := &CmdReadCloser{
+		ReadCloser: outPipe,
+		Cmd:        proc,
+	}
+	return streamWrap, nil
+}
+
 func readLines(fname string, start, difLines int) ([]string, int) {
-	file, err := os.Open(fname)
+	var file io.ReadCloser
+	var err error
+	if fileCompressed(fname) {
+		var tmp *CmdReadCloser
+		tmp, err = openFileComp(fname)
+		file = io.ReadCloser(tmp)
+	} else {
+		file, err = os.Open(fname)
+	}
+
 	if err != nil {
 		log.Println("Error opening file", err)
 		return []string{}, 0
 	}
+
 	defer file.Close()
 
 	lines := make([]string, difLines)
