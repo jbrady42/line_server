@@ -158,8 +158,17 @@ func readLines(fname string, start, difLines int) ([]string, int) {
 
 	lines := make([]string, difLines)
 	count := 0
+	seekCount := 0
 
 	scanner := bufio.NewScanner(file)
+
+	// Skip lines
+	for seekCount < start {
+		scanner.Scan()
+		seekCount++
+	}
+
+	// Read data
 	for scanner.Scan() && count < difLines {
 		lines[count] = scanner.Text()
 		count++
