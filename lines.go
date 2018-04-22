@@ -87,15 +87,17 @@ func (t *Server) readLines(p LineParams) ([]string, int) {
 	// Skip lines
 	for seekCount < newStart {
 		reader.ReadString('\n')
-		log.Println("seek")
 		seekCount++
 	}
 
+	if seekCount > 0 {
+		log.Println("Seek lines: ", seekCount)
+	}
+
 	// Read data
-	var line string
-	for err == nil && count < p.count {
-		line, err = reader.ReadString('\n')
-		lines[count] = line
+
+	for l, err := reader.ReadString('\n'); err == nil && count < p.count; l, err = reader.ReadString('\n') {
+		lines[count] = l
 		count++
 	}
 
