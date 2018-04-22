@@ -24,7 +24,7 @@ type Server struct {
 }
 
 type LineResp struct {
-	Lines []map[string]interface{}
+	Lines []LineObj
 }
 
 var compressors = map[string]string{
@@ -41,6 +41,17 @@ type LineParams struct {
 	fname string
 	start int
 	count int
+}
+
+type Body struct {
+	Id  int       `json:"id"`
+	Pos []float64 `json:"pos"`
+}
+
+type LineObj struct {
+	N      int
+	Bodies []Body  `json:"bodies"`
+	Time   float64 `json:"time"`
 }
 
 func (t *CmdReadCloser) Close() error {

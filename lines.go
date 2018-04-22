@@ -12,7 +12,7 @@ import (
 
 func lineObj(lines []string) LineResp {
 	var ret LineResp
-	ret.Lines = make([]map[string]interface{}, len(lines))
+	ret.Lines = make([]LineObj, len(lines))
 
 	for i, _ := range lines {
 		err := json.Unmarshal([]byte(lines[i]), &ret.Lines[i])
@@ -68,7 +68,6 @@ func (t *Server) openStream(p LineParams) (*bufio.Reader, int, error) {
 }
 
 func (t *Server) readLines(p LineParams) ([]string, int) {
-	// file, err := openFile(p.fname)
 	reader, newStart, err := t.openStream(p)
 
 	if err != nil {
@@ -76,13 +75,9 @@ func (t *Server) readLines(p LineParams) ([]string, int) {
 		return []string{}, 0
 	}
 
-	// defer file.Close()
-
 	lines := make([]string, p.count)
 	count := 0
 	seekCount := 0
-
-	// reader := t. //bufio.NewReader(file)
 
 	// Skip lines
 	for seekCount < newStart {
