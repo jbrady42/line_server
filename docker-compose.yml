@@ -1,0 +1,10 @@
+version: '3'
+services:
+  server:
+    image: line_server
+    ports:
+      - 1020:1020
+    environment:
+      - PORT=1020
+    volumes:
+      - $NBODY_DATA:/var/data
