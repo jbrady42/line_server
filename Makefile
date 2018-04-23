@@ -1,6 +1,6 @@
 
-build: bin/line_server
+build:
 	docker build -t line_server .
 
-bin/line_server: lines.go line_server.go
-	go build -o bin/line_server .
+line_server: lines.go line_server.go
+	go build -o line_server .
