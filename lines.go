@@ -90,14 +90,16 @@ func (t *Server) readLines(p LineParams) ([]string, int) {
 	}
 
 	// Read data
+	var l string
+	for err == nil && count < p.count {
+		l, err = reader.ReadString('\n')
+		if err != nil {
+			log.Println("Error reading file", err)
+			break
+		}
 
-	for l, err := reader.ReadString('\n'); err == nil && count < p.count; l, err = reader.ReadString('\n') {
 		lines[count] = l
 		count++
-	}
-
-	if err != nil {
-		log.Println("Error reading file", err)
 	}
 
 	s, _ := t.sources[p.fname]
