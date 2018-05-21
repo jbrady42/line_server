@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"strconv"
+	"strings"
 )
 
 type LineSource struct {
@@ -90,6 +91,14 @@ func (t *Server) handleLineRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	full_path := path.Join(t.dataDir, fname)
+	reqDir := path.Dir(full_path)
+
+	if !strings.HasPrefix(reqDir, t.dataDir) {
+		log.Println("WARNING: File outside of data directory requested ", fname)
+		http.Error(w, "Data file not found", http.StatusInternalServerError)
+		return
+	}
+
 	if _, err := os.Stat(full_path); err != nil {
 		http.Error(w, "Data file not found", http.StatusInternalServerError)
 		return
